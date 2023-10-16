@@ -536,6 +536,7 @@ export default class SchedulerData {
                     end: rule.origOptions.tzid
                       ? this.localeMoment.utc(time).utcOffset(this.localeMoment().utcOffset(), true).add(oldEnd.diff(oldStart), 'ms').add(this.localeMoment(oldUntil).utcOffset() - this.localeMoment(item.start).utcOffset(), "m").format(DATETIME_FORMAT)
                       : this.localeMoment(time).add(oldEnd.diff(oldStart), 'ms').format(DATETIME_FORMAT)
+                    
                 };
             });
             newEvents.forEach((newEvent) => {
@@ -875,108 +876,230 @@ export default class SchedulerData {
         return event1.id < event2.id ? -1 : 1;
     }
 
+
+
+
     _createRenderData() {
-        let initRenderData = this._createInitRenderData(this.isEventPerspective, this.eventGroups, this.resources, this.headers);
-        //this.events.sort(this._compare);
-        let cellMaxEventsCount = this.getCellMaxEvents();        
+        // Initialize render data
+        const initRenderData = this._createInitRenderData(this.isEventPerspective, this.eventGroups, this.resources, this.headers);
+        const cellMaxEventsCount = this.getCellMaxEvents();
         const cellMaxEventsCountValue = 30;
-
-        this.events.forEach((item) => {
-            let resourceEventsList = initRenderData.filter(x => x.slotId === this._getEventSlotId(item));
-            if(resourceEventsList.length > 0) {
-                let resourceEvents = resourceEventsList[0];
-                let span = this._getSpan(item.start, item.end, this.headers);
-                let eventStart = this.localeMoment(item.start), eventEnd = this.localeMoment(item.end);
-                let pos = -1;
-
+    
+        // Iterate through each event
+        this.events.forEach(item => {
+            // Find the corresponding resource events for the current event
+            const resourceEventsList = initRenderData.filter(x => x.slotId === this._getEventSlotId(item));
+            if (resourceEventsList.length > 0) {
+                const resourceEvents = resourceEventsList[0];
+                const span = this._getSpan(item.start, item.end, this.headers);
+                const eventStart = this.localeMoment(item.start), eventEnd = this.localeMoment(item.end);
+    
+                // Iterate through header items to find the appropriate slot
                 resourceEvents.headerItems.forEach((header, index) => {
-                    let headerStart = this.localeMoment(header.start), headerEnd = this.localeMoment(header.end);
-                    if(headerEnd > eventStart && headerStart < eventEnd) {
-                        header.count = header.count + 1;
-                        if(header.count > resourceEvents.rowMaxCount) {
-                            resourceEvents.rowMaxCount = header.count;
-                            let rowsCount = (cellMaxEventsCount <= cellMaxEventsCountValue && resourceEvents.rowMaxCount > cellMaxEventsCount) ? cellMaxEventsCount : resourceEvents.rowMaxCount;
-                            let newRowHeight = rowsCount * this.config.eventItemLineHeight + (this.config.creatable && this.config.checkConflict === false ? 20 : 2);
-                            if(newRowHeight > resourceEvents.rowHeight)
-                                resourceEvents.rowHeight = newRowHeight;
-                        }
-
-                        if(pos === -1)
-                        {
-                            let tmp = 0;
-                            while (header.events[tmp] !== undefined)
-                                tmp++;
-
-                            pos = tmp;
-                        }
+                    const headerStart = this.localeMoment(header.start), headerEnd = this.localeMoment(header.end);
+    
+                    // Check if the event overlaps with the current header item
+                    if (headerEnd > eventStart && headerStart < eventEnd) {
+                        // Update existing tasks within the slot
+                        header.events.forEach(existingTask => {
+                            if (existingTask !== undefined) {
+                                // Calculate days to add based on the relative position of the header and event
+                                const daysToAdd = headerStart <= eventStart ? 1 : -1;
+                                // Move the existing task to the next or previous date slot
+                                existingTask.eventItem.start = this.localeMoment(existingTask.eventItem.start).add(daysToAdd, 'day').format('YYYY-MM-DDTHH:mm:ss');
+                                existingTask.eventItem.end = this.localeMoment(existingTask.eventItem.end).add(daysToAdd, 'day').format('YYYY-MM-DDTHH:mm:ss');
+                            }
+                        });
+    
+                        // Set count to 1 for the new task
+                        header.count = 1;
+    
+                        // Find the position for the new task in the header's events array
+                        let pos = header.events.findIndex(e => e === undefined);
+                        if (pos === -1) pos = header.events.length;
+    
+                        // Check if the event should be rendered
                         let render = headerStart <= eventStart || index === 0;
-                        if(render === false){
-                            let previousHeader = resourceEvents.headerItems[index - 1];
-                            let previousHeaderStart = this.localeMoment(previousHeader.start), previousHeaderEnd = this.localeMoment(previousHeader.end);
-                            if(previousHeaderEnd <= eventStart || previousHeaderStart >= eventEnd)
-                                render = true;
+                        if (!render) {
+                            // Check the previous header to determine if rendering is needed
+                            const previousHeader = resourceEvents.headerItems[index - 1];
+                            const previousHeaderStart = this.localeMoment(previousHeader.start), previousHeaderEnd = this.localeMoment(previousHeader.end);
+                            render = previousHeaderEnd <= eventStart || previousHeaderStart >= eventEnd;
                         }
+    
+                        // Create the header event for the new task
                         header.events[pos] = this._createHeaderEvent(render, span, item);
                     }
                 });
             }
         });
-
-        if(cellMaxEventsCount <= cellMaxEventsCountValue || this.behaviors.getSummaryFunc !== undefined) {
-            initRenderData.forEach((resourceEvents) => {
+    
+        // Check for cellMaxEventsCount or summary function
+        if (cellMaxEventsCount <= cellMaxEventsCountValue || this.behaviors.getSummaryFunc !== undefined) {
+            initRenderData.forEach(resourceEvents => {
                 let hasSummary = false;
-
-                resourceEvents.headerItems.forEach((headerItem) => {
-                    if(cellMaxEventsCount <= cellMaxEventsCountValue) {
+    
+                // Iterate through header items for each resource event
+                resourceEvents.headerItems.forEach(headerItem => {
+                    if (cellMaxEventsCount <= cellMaxEventsCountValue) {
                         let renderItemsCount = 0, addMoreIndex = 0, index = 0;
+    
+                        // Count rendered items and find the addMoreIndex
                         while (index < cellMaxEventsCount - 1) {
-                            if(headerItem.events[index] !== undefined) {
+                            if (headerItem.events[index] !== undefined) {
                                 renderItemsCount++;
                                 addMoreIndex = index + 1;
                             }
-        
+    
                             index++;
                         }
-        
-                        if(headerItem.events[index] !== undefined) {
-                            if(renderItemsCount + 1 < headerItem.count) {
+    
+                        // Check the last item in the array
+                        if (headerItem.events[index] !== undefined) {
+                            if (renderItemsCount + 1 < headerItem.count) {
+                                headerItem.addMore = headerItem.count - renderItemsCount;
+                                headerItem.addMoreIndex = addMoreIndex;
+                            }
+                        } else {
+                            if (renderItemsCount < headerItem.count) {
                                 headerItem.addMore = headerItem.count - renderItemsCount;
                                 headerItem.addMoreIndex = addMoreIndex;
                             }
                         }
-                        else {
-                            if(renderItemsCount < headerItem.count) {
-                                headerItem.addMore = headerItem.count - renderItemsCount;
-                                headerItem.addMoreIndex = addMoreIndex;
-                            }
-                        }
-                    }                    
+                    }
     
-                    if(this.behaviors.getSummaryFunc !== undefined){
-                        let events = [];
-                        headerItem.events.forEach((e) => {
-                            if(!!e && !!e.eventItem)
-                                events.push(e.eventItem);
-                        });
+                    // Check for the existence of a summary function
+                    if (this.behaviors.getSummaryFunc !== undefined) {
+                        const events = headerItem.events.filter(e => !!e && !!e.eventItem).map(e => e.eventItem);
     
+                        // Call the summary function to get the summary text
                         headerItem.summary = this.behaviors.getSummaryFunc(this, events, resourceEvents.slotId, resourceEvents.slotName, headerItem.start, headerItem.end);
-                        if(!!headerItem.summary && headerItem.summary.text != undefined)
-                            hasSummary = true;
+                        if (!!headerItem.summary && headerItem.summary.text != undefined) hasSummary = true;
                     }
                 });
     
+                // Update the resource event with summary information
                 resourceEvents.hasSummary = hasSummary;
-                if(hasSummary) {
-                    let rowsCount = (cellMaxEventsCount <= cellMaxEventsCountValue && resourceEvents.rowMaxCount > cellMaxEventsCount) ? cellMaxEventsCount : resourceEvents.rowMaxCount;
-                    let newRowHeight = (rowsCount + 1) * this.config.eventItemLineHeight + (this.config.creatable && this.config.checkConflict === false ? 20 : 2);
-                    if(newRowHeight > resourceEvents.rowHeight)
-                        resourceEvents.rowHeight = newRowHeight;
+    
+                // Adjust row height if a summary exists
+                if (hasSummary) {
+                    const rowsCount = (cellMaxEventsCount <= cellMaxEventsCountValue && resourceEvents.rowMaxCount > cellMaxEventsCount) ? cellMaxEventsCount : resourceEvents.rowMaxCount;
+                    const newRowHeight = (rowsCount + 1) * this.config.eventItemLineHeight + (this.config.creatable && this.config.checkConflict === false ? 20 : 2);
+    
+                    if (newRowHeight > resourceEvents.rowHeight) resourceEvents.rowHeight = newRowHeight;
                 }
             });
         }
-
+    
+        // Set the modified render data
         this.renderData = initRenderData;
     }
+    
+    
+    
+
+    // _createRenderData() {
+    //     let initRenderData = this._createInitRenderData(this.isEventPerspective, this.eventGroups, this.resources, this.headers);
+    //     //this.events.sort(this._compare);
+    //     let cellMaxEventsCount = this.getCellMaxEvents();        
+    //     const cellMaxEventsCountValue = 30;
+
+    //     this.events.forEach((item) => {
+    //         let resourceEventsList = initRenderData.filter(x => x.slotId === this._getEventSlotId(item));
+    //         if(resourceEventsList.length > 0) {
+    //             let resourceEvents = resourceEventsList[0];
+    //             let span = this._getSpan(item.start, item.end, this.headers);
+    //             let eventStart = this.localeMoment(item.start), eventEnd = this.localeMoment(item.end);
+    //             let pos = -1;
+
+    //             resourceEvents.headerItems.forEach((header, index) => {
+    //                 let headerStart = this.localeMoment(header.start), headerEnd = this.localeMoment(header.end);
+    //                 if(headerEnd > eventStart && headerStart < eventEnd) {
+    //                     header.count = header.count + 1;
+    //                     if(header.count > resourceEvents.rowMaxCount) {
+    //                         resourceEvents.rowMaxCount = header.count;
+    //                         let rowsCount = (cellMaxEventsCount <= cellMaxEventsCountValue && resourceEvents.rowMaxCount > cellMaxEventsCount) ? cellMaxEventsCount : resourceEvents.rowMaxCount;
+    //                         let newRowHeight = rowsCount * this.config.eventItemLineHeight + (this.config.creatable && this.config.checkConflict === false ? 20 : 2);
+    //                         if(newRowHeight > resourceEvents.rowHeight)
+    //                             resourceEvents.rowHeight = newRowHeight;
+    //                     }
+
+    //                     if(pos === -1)
+    //                     {
+    //                         let tmp = 0;
+    //                         while (header.events[tmp] !== undefined)
+    //                             tmp++;
+
+    //                         pos = tmp;
+    //                     }
+    //                     let render = headerStart <= eventStart || index === 0;
+    //                     if(render === false){
+    //                         let previousHeader = resourceEvents.headerItems[index - 1];
+    //                         let previousHeaderStart = this.localeMoment(previousHeader.start), previousHeaderEnd = this.localeMoment(previousHeader.end);
+    //                         if(previousHeaderEnd <= eventStart || previousHeaderStart >= eventEnd)
+    //                             render = true;
+    //                     }
+    //                     header.events[pos] = this._createHeaderEvent(render, span, item);
+    //                 }
+    //             });
+    //         }
+    //     });
+
+    //     if(cellMaxEventsCount <= cellMaxEventsCountValue || this.behaviors.getSummaryFunc !== undefined) {
+    //         initRenderData.forEach((resourceEvents) => {
+    //             let hasSummary = false;
+
+    //             resourceEvents.headerItems.forEach((headerItem) => {
+    //                 if(cellMaxEventsCount <= cellMaxEventsCountValue) {
+    //                     let renderItemsCount = 0, addMoreIndex = 0, index = 0;
+    //                     while (index < cellMaxEventsCount - 1) {
+    //                         if(headerItem.events[index] !== undefined) {
+    //                             renderItemsCount++;
+    //                             addMoreIndex = index + 1;
+    //                         }
+        
+    //                         index++;
+    //                     }
+        
+    //                     if(headerItem.events[index] !== undefined) {
+    //                         if(renderItemsCount + 1 < headerItem.count) {
+    //                             headerItem.addMore = headerItem.count - renderItemsCount;
+    //                             headerItem.addMoreIndex = addMoreIndex;
+    //                         }
+    //                     }
+    //                     else {
+    //                         if(renderItemsCount < headerItem.count) {
+    //                             headerItem.addMore = headerItem.count - renderItemsCount;
+    //                             headerItem.addMoreIndex = addMoreIndex;
+    //                         }
+    //                     }
+    //                 }                    
+    
+    //                 if(this.behaviors.getSummaryFunc !== undefined){
+    //                     let events = [];
+    //                     headerItem.events.forEach((e) => {
+    //                         if(!!e && !!e.eventItem)
+    //                             events.push(e.eventItem);
+    //                     });
+    
+    //                     headerItem.summary = this.behaviors.getSummaryFunc(this, events, resourceEvents.slotId, resourceEvents.slotName, headerItem.start, headerItem.end);
+    //                     if(!!headerItem.summary && headerItem.summary.text != undefined)
+    //                         hasSummary = true;
+    //                 }
+    //             });
+    
+    //             resourceEvents.hasSummary = hasSummary;
+    //             if(hasSummary) {
+    //                 let rowsCount = (cellMaxEventsCount <= cellMaxEventsCountValue && resourceEvents.rowMaxCount > cellMaxEventsCount) ? cellMaxEventsCount : resourceEvents.rowMaxCount;
+    //                 let newRowHeight = (rowsCount + 1) * this.config.eventItemLineHeight + (this.config.creatable && this.config.checkConflict === false ? 20 : 2);
+    //                 if(newRowHeight > resourceEvents.rowHeight)
+    //                     resourceEvents.rowHeight = newRowHeight;
+    //             }
+    //         });
+    //     }
+
+    //     this.renderData = initRenderData;
+    // }
 
     _startResizing() {
         this.resizing = true;

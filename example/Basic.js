@@ -4,31 +4,39 @@ import {PropTypes} from 'prop-types'
 //import 'moment/locale/zh-cn';
 // import 'antd/lib/style/index.less';     //Add this code for locally example
 import Scheduler, {SchedulerData, ViewTypes, DATE_FORMAT, DemoData} from '../src/index'
-import Nav from './Nav'
+// import Nav from './Nav'
 import Tips from './Tips'
 import ViewSrcCode from './ViewSrcCode'
 import withDragDropContext from './withDnDContext'
 import PopupOrders from './Popuporders'
+import moment from 'moment';
 
-class Basic extends Component{
-    constructor(props){
-        super(props);
 
-        //let schedulerData = new SchedulerData(new moment("2017-12-18").format(DATE_FORMAT), ViewTypes.Week);
-        let schedulerData = new SchedulerData('2017-12-18', ViewTypes.Week);
-        schedulerData.localeMoment.locale('en');
-        schedulerData.setResources(DemoData.resources);
-        schedulerData.setEvents(DemoData.events);
-        this.state = {
-            viewModel: schedulerData
-        }
+class Basic extends Component {
+    constructor(props) {
+      super(props);
+    
+      
+      let currentDate = new Date(); // Get current date
+      let formattedCurrentDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
+      let schedulerData = new SchedulerData(formattedCurrentDate, ViewTypes.Week, false, false, {
+        checkConflict: false,
+    });
+
+      schedulerData.localeMoment.locale('en');
+      schedulerData.setResources(DemoData.resources);
+      schedulerData.setEvents(DemoData.events);
+      this.state = {
+        viewModel: schedulerData
+      };
     }
+  
 
     render(){
         const {viewModel} = this.state;
         return (
             <div>
-                <Nav />
+                {/* <Nav /> */}
                 <div>
                     <div>
                         <PopupOrders/>
@@ -53,10 +61,11 @@ class Basic extends Component{
                                onScrollRight={this.onScrollRight}
                                onScrollTop={this.onScrollTop}
                                onScrollBottom={this.onScrollBottom}
+                               conflictOccurred={this.conflictOccurred} //overlap
                                toggleExpandFunc={this.toggleExpandFunc}
                     />
                 </div>
-                <Tips />
+                {/* <Tips /> */}
             </div>
         )
     }
@@ -94,7 +103,7 @@ class Basic extends Component{
     }
 
     eventClicked = (schedulerData, event) => {
-        alert(`You just clicked an event: {id: ${event.id}, title: ${event.title}}`);
+        // alert(`You just clicked an event: {id: ${event.id}, title: ${event.title}}`);
     };
 
     ops1 = (schedulerData, event) => {
@@ -105,29 +114,126 @@ class Basic extends Component{
         alert(`You just executed ops2 to event: {id: ${event.id}, title: ${event.title}}`);
     };
 
-    newEvent = (schedulerData, slotId, slotName, start, end, type, item) => {
-        if(confirm(`Do you want to create a new event? {slotId: ${slotId}, slotName: ${slotName}, start: ${start}, end: ${end}, type: ${type}, item: ${item}}`)){
 
+    
+////Paste the copied data to the gantt chart 
+getClipboardData = async () => {
+    try {
+        // Use the Clipboard API to access data from the clipboard
+        const clipboardText = await navigator.clipboard.readText();
+
+        // Clear the clipboard after reading the data
+        await navigator.clipboard.writeText('');
+
+        // Parse the clipboard text or perform any necessary transformations
+        // In this example, I assume the clipboard contains a JSON string
+        const clipboardData = JSON.parse(clipboardText);
+        return clipboardData;
+    } catch (error) {
+        console.error('Error accessing or clearing clipboard data:', error);
+        return null;
+    }
+};
+
+
+
+newEvent = async (schedulerData, slotId, slotName, start, end, type, item, duration) => {
+    try {
+        // Fetch data from the clipboard
+        const clipboardData = await this.getClipboardData();
+
+        if (clipboardData) {
+            // Print the pasting data in the console
+            console.log('Pasting Data:', clipboardData);
+
+            // Find a fresh ID for the new event
             let newFreshId = 0;
-            schedulerData.events.forEach((item) => {
-                if(item.id >= newFreshId)
-                    newFreshId = item.id + 1;
+            schedulerData.events.forEach(existingEvent => {
+                if (existingEvent.id >= newFreshId) {
+                    newFreshId = existingEvent.id + 1;
+                }
             });
 
-            let newEvent = {
+            // Calculate the duration between start and end dates using moment duration
+            const momentDuration = moment.duration(moment(end).diff(moment(start)));
+
+            // Calculate the duration in days
+            const durationInDays = momentDuration.asDays();
+
+            // Create a new event object
+            const newEvent = {
                 id: newFreshId,
-                title: 'New event you just created',
-                start: start,
-                end: end,
+                title: clipboardData.oID || 'New event you just created',
+                start: moment(start).format() || moment(clipboardData.deadline).format(),
+                end: moment(end).format() || moment(clipboardData.deadline).format(),
                 resourceId: slotId,
-                bgColor: 'purple'
-            }
+                bgColor: 'purple',
+                rrule: 'FREQ=DAILY;COUNT=1',
+                resizable: true,
+                movable: true,
+                endResizable: true,
+                // Set the duration using the provided duration or calculate it from start and end dates
+                duration: duration !== undefined ? duration : durationInDays,
+                // Include other properties as they were
+                // For example: type, item, etc.
+                ...clipboardData,
+            };
+
+            // Set the bar length based on the duration
+            newEvent.barInnerAddon = {
+                // Assuming your scheduling library expects a format like 'height: 50%'
+                width: `${(duration !== undefined ? duration : durationInDays) * 100}%`,
+            };
+
+            // Add the new event to the scheduler data
             schedulerData.addEvent(newEvent);
+
+            // Update the component state with the new scheduler data
             this.setState({
-                viewModel: schedulerData
-            })
+                viewModel: schedulerData,
+            });
         }
+    } catch (error) {
+        console.error('Error creating new event:', error);
+        alert('Error creating new event. Please check console for details.');
     }
+};
+
+
+
+
+
+
+
+
+
+
+    
+
+
+    // newEvent = (schedulerData, slotId, slotName, start, end, type, item) => {
+    //     // if(confirm(`Do you want to create a new event? {slotId: ${slotId}, slotName: ${slotName}, start: ${start}, end: ${end}, type: ${type}, item: ${item}}`)){
+
+    //         let newFreshId = 0;
+    //         schedulerData.events.forEach((item) => {
+    //             if(item.id >= newFreshId)
+    //                 newFreshId = item.id + 1;
+    //         });
+
+    //         let newEvent = {
+    //             id: newFreshId,
+    //             title: 'New event you just created',
+    //             start: start,
+    //             end: end,
+    //             resourceId: slotId,
+    //             bgColor: 'purple'
+    //         }
+    //         schedulerData.addEvent(newEvent);
+    //         this.setState({
+    //             viewModel: schedulerData
+    //         })
+    //     // }
+    // }
 
     updateEventStart = (schedulerData, event, newStart) => {
         if(confirm(`Do you want to adjust the start of the event? {eventId: ${event.id}, eventTitle: ${event.title}, newStart: ${newStart}}`)) {
@@ -148,12 +254,12 @@ class Basic extends Component{
     }
 
     moveEvent = (schedulerData, event, slotId, slotName, start, end) => {
-        if(confirm(`Do you want to move the event? {eventId: ${event.id}, eventTitle: ${event.title}, newSlotId: ${slotId}, newSlotName: ${slotName}, newStart: ${start}, newEnd: ${end}`)) {
+        // if(confirm(`Do you want to move the event? {eventId: ${event.id}, eventTitle: ${event.title}, newSlotId: ${slotId}, newSlotName: ${slotName}, newStart: ${start}, newEnd: ${end}`)) {
             schedulerData.moveEvent(event, slotId, slotName, start, end);
             this.setState({
                 viewModel: schedulerData
             })
-        }
+        // }
     }
 
     onScrollRight = (schedulerData, schedulerContent, maxScrollLeft) => {
@@ -186,6 +292,9 @@ class Basic extends Component{
 
     onScrollBottom = (schedulerData, schedulerContent, maxScrollTop) => {
         console.log('onScrollBottom');
+    }
+ //overlap
+    conflictOccurred = (schedulerData, action, event, type, slotId, slotName, start, end) => {
     }
 
     toggleExpandFunc = (schedulerData, slotId) => {
