@@ -4,37 +4,45 @@ const DemoData = {
             id: 'r0',
             name: 'Resource0',
             groupOnly: true,
+            noOfresources: 11
         },
         {
             id: 'r1',
             name: 'Resource1',
             parentId: 'r0',
+            noOfresources: 50
         },
         {
             id: 'r2',
             name: 'Resource2',
             parentId: 'r3',
+            noOfresources: 100
         },
         {
             id: 'r3',
             name: 'Resource3',
             parentId: 'r1',
+            noOfresources: 80
         },
         {
             id: 'r4',
             name: 'Resource4',
+            noOfresources: 90
         },
         {
             id: 'r5',
             name: 'Resource5',
+            noOfresources: 120
         },
         {
             id: 'r6',
             name: 'Resource6',
+            noOfresources: 110
         },
         {
             id: 'r7',
             name: 'Resource7Resource7Resource7Resource7Resource7',
+            noOfresources: 120
         }
     ],
     events: [
@@ -45,7 +53,9 @@ const DemoData = {
             resourceId: 'r1',
             title: 'I am finished',
             bgColor: '#D9D9D9',
-            showPopover: false
+            showPopover: false,
+            smv: 10,
+            pcs: 1000
         },
         {
             id: 2,
@@ -53,7 +63,9 @@ const DemoData = {
             end: '2023-10-20 23:30:00',
             resourceId: 'r2',
             title: 'I am not resizable',
-            resizable: true
+            resizable: true,
+            smv: 12,
+            pcs: 1000
         },
         {
             id: 3,
@@ -61,7 +73,9 @@ const DemoData = {
             end: '2023-10-18 23:30:00',
             resourceId: 'r3',
             title: 'I am not movable',
-            movable: true
+            movable: true,
+            smv: 20,
+            pcs: 1000
         },
         {
             id: 4,
@@ -70,6 +84,8 @@ const DemoData = {
             resourceId: 'r4',
             title: 'I am not start-resizable',
             startResizable: false,
+            smv: 15,
+            pcs: 2000
         }
         // ,
         // {

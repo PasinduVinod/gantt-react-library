@@ -10,6 +10,7 @@ import ViewSrcCode from './ViewSrcCode'
 import withDragDropContext from './withDnDContext'
 import PopupOrders from './Popuporders'
 import moment from 'moment';
+import CollapsePanel from 'antd/lib/collapse/CollapsePanel'
 
 
 class Basic extends Component {
@@ -20,8 +21,10 @@ class Basic extends Component {
       let currentDate = new Date(); // Get current date
       let formattedCurrentDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
       let schedulerData = new SchedulerData(formattedCurrentDate, ViewTypes.Week, false, false, {
+        displayWeekend: false,
         checkConflict: false,
-    });
+        resizable: false,
+      });
 
       schedulerData.localeMoment.locale('en');
       schedulerData.setResources(DemoData.resources);
@@ -113,9 +116,7 @@ class Basic extends Component {
     ops2 = (schedulerData, event) => {
         alert(`You just executed ops2 to event: {id: ${event.id}, title: ${event.title}}`);
     };
-
-
-    
+ 
 ////Paste the copied data to the gantt chart 
 getClipboardData = async () => {
     try {
@@ -135,8 +136,6 @@ getClipboardData = async () => {
     }
 };
 
-
-
 newEvent = async (schedulerData, slotId, slotName, start, end, type, item, duration) => {
     try {
         // Fetch data from the clipboard
@@ -155,25 +154,62 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
             });
 
             // Calculate the duration between start and end dates using moment duration
-            const momentDuration = moment.duration(moment(end).diff(moment(start)));
+            // const momentDuration = moment.duration(moment(end).diff(moment(start)));
+
+            let smv = clipboardData.smv, pcs = clipboardData.pieces, gsmv = 0;
+            // const gsmv = findResourceGSMV(schedulerData, slotId);
+            schedulerData.resources.forEach(findgsmv => {
+                if (findgsmv.id == slotId) {
+                    gsmv = findgsmv.noOfresources;
+                }
+            });
+
+           //find the gsmv of the resource, id == slotId 
+            console.log("Slot: ",slotId);
+            console.log("smv: ", smv);
+            console.log("Pcs: ",pcs);
+            console.log("GSMV: ",gsmv);
 
             // Calculate the duration in days
-            const durationInDays = momentDuration.asDays();
+            const Duration = ((pcs*smv)/(gsmv*480));
+            const roundedDate = Math.ceil(Duration);
+            
+            // const durationInDays = roundedDate.asDays();
+            // console.log("duration: ",durationInDays);
+            // console.log("Start : ",moment(start));
+            // const end = start + roundedDate;
+
+            // Convert the 'start' date to a moment object
+            const startMoment = moment(start);
+            console.log("start moment: ")
+            // console.log(durationInDays)
+
+            // Add the 'roundedDate' in days to the 'start' date
+            console.log("end: ", startMoment.add(roundedDate, 'days'));
+
+            // Format the result back to a string
+            const end = startMoment.format();
+
+            console.log("rounded: ", roundedDate);
+            console.log("start: ", start);
+            console.log("end: ", end);
 
             // Create a new event object
             const newEvent = {
                 id: newFreshId,
                 title: clipboardData.oID || 'New event you just created',
-                start: moment(start).format() || moment(clipboardData.deadline).format(),
-                end: moment(end).format() || moment(clipboardData.deadline).format(),
+                start: start,
+                end: end,
                 resourceId: slotId,
+                pcs: pcs,
+                smv: smv,
                 bgColor: 'purple',
                 rrule: 'FREQ=DAILY;COUNT=1',
-                resizable: true,
+                resizable: false,
                 movable: true,
-                endResizable: true,
+                endResizable: false,
                 // Set the duration using the provided duration or calculate it from start and end dates
-                duration: duration !== undefined ? duration : durationInDays,
+                duration: duration !== undefined ? duration : roundedDate,
                 // Include other properties as they were
                 // For example: type, item, etc.
                 ...clipboardData,
@@ -182,7 +218,7 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
             // Set the bar length based on the duration
             newEvent.barInnerAddon = {
                 // Assuming your scheduling library expects a format like 'height: 50%'
-                width: `${(duration !== undefined ? duration : durationInDays) * 100}%`,
+                width: `${(duration !== undefined ? duration : roundedDate) * 100}%`,
             };
 
             // Add the new event to the scheduler data
@@ -201,14 +237,6 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
 
 
 
-
-
-
-
-
-
-
-    
 
 
     // newEvent = (schedulerData, slotId, slotName, start, end, type, item) => {
@@ -235,6 +263,19 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
     //     // }
     // }
 
+    // findResourceGSMV = (schedulerData, slotId) => {
+    //     // Iterate through the resources to find the one with a matching id
+    //     const matchingResource = schedulerData.resources;
+    //     console.log("matching resource : ", matchingResource)
+    //     if (matchingResource) {
+    //         // Assuming "gsmv" is a property of the resource
+    //         return matchingResource.gsmv || 0; // Replace 0 with a default value if necessary
+    //     }
+    //     return 0; // Return a default value if no matching resource is found
+    // };
+    
+ 
+
     updateEventStart = (schedulerData, event, newStart) => {
         if(confirm(`Do you want to adjust the start of the event? {eventId: ${event.id}, eventTitle: ${event.title}, newStart: ${newStart}}`)) {
             schedulerData.updateEventStart(event, newStart);
@@ -245,9 +286,7 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
     }
 
     updateEventEnd = (schedulerData, event, newEnd) => {
-        if(confirm(`Do you want to adjust the end of the event? {eventId: ${event.id}, eventTitle: ${event.title}, newEnd: ${newEnd}}`)) {
-            schedulerData.updateEventEnd(event, newEnd);
-        }
+        schedulerData.updateEventEnd(event, newEnd);
         this.setState({
             viewModel: schedulerData
         })
@@ -255,11 +294,35 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
 
     moveEvent = (schedulerData, event, slotId, slotName, start, end) => {
         // if(confirm(`Do you want to move the event? {eventId: ${event.id}, eventTitle: ${event.title}, newSlotId: ${slotId}, newSlotName: ${slotName}, newStart: ${start}, newEnd: ${end}`)) {
-            schedulerData.moveEvent(event, slotId, slotName, start, end);
+        console.log("Update")
+        
+        let smv = event.smv, pcs = event.pcs, gsmv = 0;
+        
+        schedulerData.resources.forEach(findgsmv => {
+            if (findgsmv.id == slotId) {
+                gsmv = findgsmv.noOfresources;
+            }
+        });
+        const Duration = ((pcs*smv)/(gsmv*480));
+        const roundedDate = Math.ceil(Duration);
+
+        const startMoment = moment(start);
+        console.log("start moment: ")
+
+        console.log("end: ", startMoment.add(roundedDate, 'days'));
+
+        //     // Format the result back to a string
+        let newend = startMoment.format();
+        // end = newend;
+        console.log("rounded: ", roundedDate);
+        console.log("start: ", start);
+        console.log("end: ", newend);
+        
+        schedulerData.moveEvent(event, slotId, slotName, start, newend);
             this.setState({
                 viewModel: schedulerData
             })
-        // }
+        
     }
 
     onScrollRight = (schedulerData, schedulerContent, maxScrollLeft) => {
@@ -295,6 +358,7 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
     }
  //overlap
     conflictOccurred = (schedulerData, action, event, type, slotId, slotName, start, end) => {
+
     }
 
     toggleExpandFunc = (schedulerData, slotId) => {

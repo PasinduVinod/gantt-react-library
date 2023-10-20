@@ -2,11 +2,11 @@ import React, { useState } from "react";
 
 const PopupOrders = () => {
   const [data, setData] = useState([
-    {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 10000, "deadline":"2023-10-15", "duration":"10"},
-    {"oID":"O002", "cutomerID":"C002", "customerName":"Alpha", "pieces": 8000, "deadline":"2023-10-19", "duration":"10"},
-    {"oID":"O003", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, "deadline":"2023-10-3", "duration":"3"},
-    {"oID":"O004", "cutomerID":"C001", "customerName":"Benji", "pieces": 12000, "deadline":"2023-10-25", "duration":"7"},
-    {"oID":"O005", "cutomerID":"C002", "customerName":"Alpha", "pieces": 18000, "deadline":"2023-10-30", "duration":"4"}
+    {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 10000, smv:10, "deadline":"2023-10-15"},
+    {"oID":"O002", "cutomerID":"C002", "customerName":"Alpha", "pieces": 8000, smv:10, "deadline":"2023-10-19"},
+    {"oID":"O003", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, smv:20, "deadline":"2023-10-3"},
+    {"oID":"O004", "cutomerID":"C001", "customerName":"Benji", "pieces": 12000, smv:15, "deadline":"2023-10-25"},
+    {"oID":"O005", "cutomerID":"C002", "customerName":"Alpha", "pieces": 18000, smv:10, "deadline":"2023-10-30"}
   ]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);

@@ -187,6 +187,8 @@ class ResourceEvents extends Component {
         });
 
         let hasConflict = false;
+        let existingEventToShift = null; // This will hold the existing event to shift
+
         if(config.checkConflict){
             let start = localeMoment(startTime),
                 end = localeMoment(endTime);
@@ -197,6 +199,7 @@ class ResourceEvents extends Component {
                         eEnd = localeMoment(e.end);
                     if((start >= eStart && start < eEnd) || (end > eStart && end <= eEnd) || (eStart >= start && eStart < end) || (eEnd > start && eEnd <= end))
                         hasConflict = true;
+                        existingEventToShift = e; // Save the existing event
                 }
             });
         }
