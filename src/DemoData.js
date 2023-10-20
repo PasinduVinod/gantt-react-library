@@ -2,46 +2,42 @@ const DemoData = {
     resources: [
         {
             id: 'r0',
-            name: 'Resource0',
-            groupOnly: true,
+            name: 'Team01',
             noOfresources: 11
         },
         {
             id: 'r1',
-            name: 'Resource1',
-            parentId: 'r0',
+            name: 'Team02',
             noOfresources: 50
         },
         {
             id: 'r2',
-            name: 'Resource2',
-            parentId: 'r3',
+            name: 'Team03',
             noOfresources: 100
         },
         {
             id: 'r3',
-            name: 'Resource3',
-            parentId: 'r1',
+            name: 'Team04',
             noOfresources: 80
         },
         {
             id: 'r4',
-            name: 'Resource4',
+            name: 'Team05',
             noOfresources: 90
         },
         {
             id: 'r5',
-            name: 'Resource5',
+            name: 'Team06',
             noOfresources: 120
         },
         {
             id: 'r6',
-            name: 'Resource6',
+            name: 'Team07',
             noOfresources: 110
         },
         {
             id: 'r7',
-            name: 'Resource7Resource7Resource7Resource7Resource7',
+            name: 'Team08',
             noOfresources: 120
         }
     ],
