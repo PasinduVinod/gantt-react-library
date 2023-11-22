@@ -407,17 +407,7 @@ export default class SchedulerData {
         this._createRenderData();
     }
 
-    // findResourceGSMV = (schedulerData, slotId) => {
-    //     // Iterate through the resources to find the one with a matching id
-    //     const matchingResource = schedulerData.getEventSlotById(slotId);
-    //     if (matchingResource) {
-    //         // Assuming "gsmv" is a property of the resource
-    //         return matchingResource.gsmv || 0; // Replace 0 with a default value if necessary
-    //     }
-    //     return 0; // Return a default value if no matching resource is found
-    // };
-
-    isEventInTimeWindow(eventStart, eventEnd, windowStart, windowEnd) {
+ isEventInTimeWindow(eventStart, eventEnd, windowStart, windowEnd) {
         return eventStart < windowEnd && eventEnd >windowStart;
     }
 
@@ -1002,7 +992,7 @@ export default class SchedulerData {
     //     this.renderData = initRenderData;
     // }
     
-    _createRenderData() {
+     _createRenderData() {
         let initRenderData = this._createInitRenderData(this.isEventPerspective, this.eventGroups, this.resources, this.headers);
         //this.events.sort(this._compare);
         let cellMaxEventsCount = this.getCellMaxEvents();        
@@ -1092,13 +1082,7 @@ export default class SchedulerData {
                     if(this.behaviors.getSummaryFunc !== undefined){
                         const events = headerItem.events.filter(e => !!e && !!e.eventItem).map(e => e.eventItem);
     
-                        // Call the summary function to get the summary text
-                        // headerItem.summary = this.behaviors.getSummaryFunc(this, events, resourceEvents.slotId, resourceEvents.slotName, headerItem.start, headerItem.end);
-    //                     let events = [];
-    //                     headerItem.events.forEach((e) => {
-    //                         if(!!e && !!e.eventItem)
-    //                             events.push(e.eventItem);
-    //                     });
+
     
                         headerItem.summary = this.behaviors.getSummaryFunc(this, events, resourceEvents.slotId, resourceEvents.slotName, headerItem.start, headerItem.end);
                         if(!!headerItem.summary && headerItem.summary.text != undefined)
@@ -1118,6 +1102,7 @@ export default class SchedulerData {
 
         this.renderData = initRenderData;
     }
+
 
     _startResizing() {
         this.resizing = true;

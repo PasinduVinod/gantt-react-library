@@ -51,9 +51,13 @@ class ResourceView extends Component {
                 slotClickedFunc(schedulerData, item);
             }}>{item.slotName}</a></span>
                 : <span className="slot-cell">{indents}<span className="slot-text">{item.slotName}</span></span>;
+            
+             //// Find the corresponding team member count in DemoData
+             const team = schedulerData.resources.find((resource) => resource.id === item.slotId);
             let slotItem = (
                 <div title={item.slotName} className="overflow-text header2-text" style={{textAlign: "left"}}>
                     {a}
+                    {team && <span className="team-members"> - Members: {team.teamMembers}</span>} {/* Display the team member count */}
                 </div>
             );
             if(!!slotItemTemplateResolver) {
@@ -83,7 +87,7 @@ class ResourceView extends Component {
             <div style={{paddingBottom: paddingBottom}}>
                 <table className="resource-table">
                     <tbody>
-                        {resourceList}
+                        {resourceList} {/*Team names*/}
                     </tbody>
                 </table>
             </div>

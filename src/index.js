@@ -216,6 +216,7 @@ class Scheduler extends Component {
             }
 
             let resourceName = schedulerData.isEventPerspective ? config.taskName : config.resourceName;
+            let teamMembers = schedulerData.isEventPerspective ? config.taskName : config.teamMembers; //NEW!!
             tbodyContent = (
                 <tr>
                     <td style={{width: resourceTableWidth, verticalAlign: 'top'}}>
@@ -227,6 +228,7 @@ class Scheduler extends Component {
                                         <tr style={{height: config.tableHeaderHeight}}>
                                             <th className="header3-text">
                                                 {resourceName}
+                                                {teamMembers} {/* NEW!! */}
                                             </th>
                                         </tr>
                                         </thead>

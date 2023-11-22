@@ -44,7 +44,7 @@ class Basic extends Component {
                     <div>
                         <PopupOrders/>
                     </div>
-                    <h3 style={{textAlign: 'center'}}>Basic example<ViewSrcCode srcCodeUrl="https://github.com/StephenChou1017/react-big-scheduler/blob/master/example/Basic.js" /></h3>
+                    {/* <h3 style={{textAlign: 'center'}}>Basic example<ViewSrcCode srcCodeUrl="https://github.com/StephenChou1017/react-big-scheduler/blob/master/example/Basic.js" /></h3> */}
                     
                     <Scheduler schedulerData={viewModel}
                                prevClick={this.prevClick}
@@ -126,8 +126,6 @@ getClipboardData = async () => {
         // Clear the clipboard after reading the data
         await navigator.clipboard.writeText('');
 
-        // Parse the clipboard text or perform any necessary transformations
-        // In this example, I assume the clipboard contains a JSON string
         const clipboardData = JSON.parse(clipboardText);
         return clipboardData;
     } catch (error) {
@@ -136,6 +134,8 @@ getClipboardData = async () => {
     }
 };
 
+
+//Display the tasks in blue or red if there delayed time period available
 newEvent = async (schedulerData, slotId, slotName, start, end, type, item, duration) => {
     try {
         // Fetch data from the clipboard
@@ -153,72 +153,65 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
                 }
             });
 
-            // Calculate the duration between start and end dates using moment duration
-            // const momentDuration = moment.duration(moment(end).diff(moment(start)));
+            // Assuming you have a deadline date stored in your schedulerData
+            const deadline = moment(clipboardData.deadline); // actual deadline date
 
-            let smv = clipboardData.smv, pcs = clipboardData.pieces, gsmv = 0;
-            // const gsmv = findResourceGSMV(schedulerData, slotId);
-            schedulerData.resources.forEach(findgsmv => {
-                if (findgsmv.id == slotId) {
-                    gsmv = findgsmv.noOfresources;
+            let smv = clipboardData.smv, pcs = clipboardData.pieces, tmemb = 0;
+
+            schedulerData.resources.forEach(findtmemb => {
+                if (findtmemb.id == slotId) {
+                    tmemb = findtmemb.teamMembers;
                 }
             });
 
-           //find the gsmv of the resource, id == slotId 
-            console.log("Slot: ",slotId);
-            console.log("smv: ", smv);
-            console.log("Pcs: ",pcs);
-            console.log("GSMV: ",gsmv);
-
-            // Calculate the duration in days
-            const Duration = ((pcs*smv)/(gsmv*480));
-            const roundedDate = Math.ceil(Duration);
-            
-            // const durationInDays = roundedDate.asDays();
-            // console.log("duration: ",durationInDays);
-            // console.log("Start : ",moment(start));
-            // const end = start + roundedDate;
+            const totalDuration = ((pcs * smv) / (tmemb * 480));
+            const roundedTotalDuration = Math.ceil(totalDuration);
 
             // Convert the 'start' date to a moment object
             const startMoment = moment(start);
-            console.log("start moment: ")
-            // console.log(durationInDays)
 
-            // Add the 'roundedDate' in days to the 'start' date
-            console.log("end: ", startMoment.add(roundedDate, 'days'));
+            // Calculate the duration before the deadline
+            const timeBeforeDeadline = moment(deadline).diff(startMoment, 'days');
+            const durationBeforeDeadline = Math.min(timeBeforeDeadline, roundedTotalDuration);
+console.log("Before delay time: "+durationBeforeDeadline+" days") //consoling the time
 
-            // Format the result back to a string
-            const end = startMoment.format();
+            // Calculate the duration after the deadline
+            const durationAfterDeadline = Math.max(0, roundedTotalDuration - (timeBeforeDeadline+1));
+console.log("Delay time: "+durationAfterDeadline+" days") //consoling the delay time
+            // Add the 'durationBeforeDeadline' in days to the 'start' date
+            const endBeforeDeadline = startMoment.clone().add(durationBeforeDeadline, 'days');
 
-            console.log("rounded: ", roundedDate);
-            console.log("start: ", start);
-            console.log("end: ", end);
+            // Add the 'durationAfterDeadline' in days to the 'start' date
+            const endAfterDeadline = startMoment.clone().add(roundedTotalDuration, 'days');
 
-            // Create a new event object
+            // Create a new event object with appropriate styling based on deadline
             const newEvent = {
                 id: newFreshId,
                 title: clipboardData.oID || 'New event you just created',
                 start: start,
-                end: end,
+                end: endAfterDeadline.format(), // Using the total duration for the end date
                 resourceId: slotId,
+                durationAfterDeadline: durationAfterDeadline,
+                durationBeforeDeadline: durationBeforeDeadline,
+                totalDuration: roundedTotalDuration,
                 pcs: pcs,
                 smv: smv,
-                bgColor: 'purple',
+                // Set the bgColor based on whether the entire task can be completed before the deadline
+                bgColor: durationAfterDeadline === 0 ? 'cornflowerblue' : 'red',
                 rrule: 'FREQ=DAILY;COUNT=1',
                 resizable: false,
                 movable: true,
                 endResizable: false,
                 // Set the duration using the provided duration or calculate it from start and end dates
-                duration: duration !== undefined ? duration : roundedDate,
+                duration: duration !== undefined ? duration : roundedTotalDuration,
                 // Include other properties as they were
                 // For example: type, item, etc.
                 ...clipboardData,
             };
 
-            // Set the bar length based on the duration
+            // Set the bar length based on the total duration
             newEvent.barInnerAddon = {
-                // Assuming your scheduling library expects a format like 'height: 50%'
-                width: `${(duration !== undefined ? duration : roundedDate) * 100}%`,
+                width: `${roundedTotalDuration * 100}%`,
             };
 
             // Add the new event to the scheduler data
@@ -235,46 +228,226 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
     }
 };
 
+//TWO STRIPES EDITION DELAYED PART IS SHOWN IN UNDER THE BLUE TASK IN RED CLR
+// newEvent = async (schedulerData, slotId, slotName, start, end, type, item, duration) => {
+//     try {
+//         // Fetch data from the clipboard
+//         const clipboardData = await this.getClipboardData();
+
+//         if (clipboardData) {
+//             // Print the pasting data in the console
+//             console.log('Pasting Data:', clipboardData);
+
+//             // Find a fresh ID for the new event
+//             let newFreshId = 0;
+//             schedulerData.events.forEach(existingEvent => {
+//                 if (existingEvent.id >= newFreshId) {
+//                     newFreshId = existingEvent.id + 1;
+//                 }
+//             });
+
+//             // Assuming you have a deadline date stored in your schedulerData
+//             const deadline = moment(clipboardData.deadline); // actual deadline date
+
+//             let smv = clipboardData.smv, pcs = clipboardData.pieces, tmemb = 0;
+
+//             schedulerData.resources.forEach(findtmemb => {
+//                 if (findtmemb.id == slotId) {
+//                     tmemb = findtmemb.teamMembers;
+//                 }
+//             });
+
+//             const totalDuration = ((pcs * smv) / (tmemb * 480));
+//             const roundedTotalDuration = Math.ceil(totalDuration);
+
+//             // Convert the 'start' date to a moment object
+//             const startMoment = moment(start);
+
+//             // Calculate the duration before the deadline
+//             const timeBeforeDeadline = moment(deadline).diff(startMoment, 'days');
+//             const durationBeforeDeadline = Math.min(timeBeforeDeadline, roundedTotalDuration);
+
+//             // Calculate the duration after the deadline
+//             const durationAfterDeadline = Math.max(0, roundedTotalDuration - timeBeforeDeadline);
+//             console.log(durationAfterDeadline) // consoling the delay time
+
+//             // Add the 'durationBeforeDeadline' in days to the 'start' date
+//             const endBeforeDeadline = startMoment.clone().add(durationBeforeDeadline, 'days');
+
+//             // Add the 'durationAfterDeadline' in days to the 'start' date
+//             const endAfterDeadline = startMoment.clone().add(roundedTotalDuration, 'days');
+
+//             // Create a new event object with appropriate styling based on deadline
+//             const newEvent = {
+//                 id: newFreshId,
+//                 title: clipboardData.oID || 'New event you just created',
+//                 start: start,
+//                 end: endAfterDeadline.format(), // Using the total duration for the end date
+//                 resourceId: slotId,
+//                 pcs: pcs,
+//                 smv: smv,
+//                 // Set the bgColor based on whether the entire task can be completed before the deadline
+//                 bgColor: 'cornflowerblue',
+//                 rrule: 'FREQ=DAILY;COUNT=1',
+//                 resizable: false,
+//                 movable: true,
+//                 endResizable: false,
+//                 // Set the duration using the provided duration or calculate it from start and end dates
+//                 duration: duration !== undefined ? duration : roundedTotalDuration,
+//                 // Include other properties as they were
+//                 // For example: type, item, etc.
+//                 ...clipboardData,
+//             };
+
+//             // Set the bar length based on the total duration
+//             newEvent.barInnerAddon = {
+//                 width: `${roundedTotalDuration * 100}%`,
+//             };
+
+//             // If there's a part after the deadline, add it as a separate event with 'red' bgColor
+//             if (durationAfterDeadline > 0) {
+//                 const afterDeadlineEvent = {
+//                     id: newFreshId + 1,
+//                     title: clipboardData.oID || 'New event you just created',
+//                     start: endBeforeDeadline.format(), // Starting where the first event ends
+//                     end: endAfterDeadline.format(), // Using the total duration for the end date
+//                     resourceId: slotId,
+//                     pcs: pcs,
+//                     smv: smv,
+//                     bgColor: 'red',
+//                     rrule: 'FREQ=DAILY;COUNT=1',
+//                     resizable: false,
+//                     movable: true,
+//                     endResizable: false,
+//                     duration: durationAfterDeadline,
+//                     ...clipboardData,
+//                 };
+
+//                 // Set the bar length based on the total duration
+//                 afterDeadlineEvent.barInnerAddon = {
+//                     width: `${durationAfterDeadline * 100}%`,
+//                 };
+
+//                 // Add the second part after the deadline to the scheduler data
+//                 schedulerData.addEvent(afterDeadlineEvent);
+//             }
+
+//             // Add the new event to the scheduler data
+//             schedulerData.addEvent(newEvent);
+
+//             // Update the component state with the new scheduler data
+//             this.setState({
+//                 viewModel: schedulerData,
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error creating new event:', error);
+//         alert('Error creating new event. Please check console for details.');
+//     }
+// };
+
+
+
+// newEvent = async (schedulerData, slotId, slotName, start, end, type, item, duration) => {
+//     try {
+//         // Fetch data from the clipboard
+//         const clipboardData = await this.getClipboardData();
+
+//         if (clipboardData) {
+//             // Print the pasting data in the console
+//             console.log('Pasting Data:', clipboardData);
+
+//             // Find a fresh ID for the new event
+//             let newFreshId = 0;
+//             schedulerData.events.forEach(existingEvent => {
+//                 if (existingEvent.id >= newFreshId) {
+//                     newFreshId = existingEvent.id + 1;
+//                 }
+//             });
+
+         
+
+//             let smv = clipboardData.smv, pcs = clipboardData.pieces, tmemb = 0;
+//             // const tmemb = findResourcetmemb(schedulerData, slotId);
+//             schedulerData.resources.forEach(findtmemb => {
+//                 if (findtmemb.id == slotId) {
+//                     tmemb = findtmemb.teamMembers;
+//                 }
+//             });
+
+//            //find the tmemb of the resource, id == slotId 
+//             console.log("Slot: ",slotId);
+//             console.log("smv: ", smv);
+//             console.log("Pcs: ",pcs);
+//             console.log("tmemb: ",tmemb);
+
+//             // Calculate the duration in days
+//             const Duration = ((pcs*smv)/(tmemb*480));
+//             const roundedDate = Math.ceil(Duration);
+            
+           
+
+//             // Convert the 'start' date to a moment object
+//             const startMoment = moment(start);
+//             console.log("start moment: ")
+//             // console.log(durationInDays)
+
+//             // Add the 'roundedDate' in days to the 'start' date
+//             console.log("end: ", startMoment.add(roundedDate, 'days'));
+
+//             // Format the result back to a string
+//             const end = startMoment.format();
+
+//             console.log("rounded: ", roundedDate);
+//             console.log("start: ", start);
+//             console.log("end: ", end);
+
+//             // Create a new event object
+//             const newEvent = {
+//                 id: newFreshId,
+//                 title: clipboardData.oID || 'New event you just created',
+//                 start: start,
+//                 end: end,
+//                 resourceId: slotId,
+//                 pcs: pcs,
+//                 smv: smv,
+//                 bgColor: 'cornflowerblue ',
+//                 rrule: 'FREQ=DAILY;COUNT=1',
+//                 resizable: false,
+//                 movable: true,
+//                 endResizable: false,
+//                 // Set the duration using the provided duration or calculate it from start and end dates
+//                 duration: duration !== undefined ? duration : roundedDate,
+//                 // Include other properties as they were
+//                 // For example: type, item, etc.
+//                 ...clipboardData,
+//             };
+
+//             // Set the bar length based on the duration
+//             newEvent.barInnerAddon = {
+//                 // Assuming your scheduling library expects a format like 'height: 50%'
+//                 width: `${(duration !== undefined ? duration : roundedDate) * 100}%`,
+//             };
+
+//             // Add the new event to the scheduler data
+//             schedulerData.addEvent(newEvent);
+
+//             // Update the component state with the new scheduler data
+//             this.setState({
+//                 viewModel: schedulerData,
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error creating new event:', error);
+//         alert('Error creating new event. Please check console for details.');
+//     }
+// };
 
 
 
 
-    // newEvent = (schedulerData, slotId, slotName, start, end, type, item) => {
-    //     // if(confirm(`Do you want to create a new event? {slotId: ${slotId}, slotName: ${slotName}, start: ${start}, end: ${end}, type: ${type}, item: ${item}}`)){
 
-    //         let newFreshId = 0;
-    //         schedulerData.events.forEach((item) => {
-    //             if(item.id >= newFreshId)
-    //                 newFreshId = item.id + 1;
-    //         });
-
-    //         let newEvent = {
-    //             id: newFreshId,
-    //             title: 'New event you just created',
-    //             start: start,
-    //             end: end,
-    //             resourceId: slotId,
-    //             bgColor: 'purple'
-    //         }
-    //         schedulerData.addEvent(newEvent);
-    //         this.setState({
-    //             viewModel: schedulerData
-    //         })
-    //     // }
-    // }
-
-    // findResourceGSMV = (schedulerData, slotId) => {
-    //     // Iterate through the resources to find the one with a matching id
-    //     const matchingResource = schedulerData.resources;
-    //     console.log("matching resource : ", matchingResource)
-    //     if (matchingResource) {
-    //         // Assuming "gsmv" is a property of the resource
-    //         return matchingResource.gsmv || 0; // Replace 0 with a default value if necessary
-    //     }
-    //     return 0; // Return a default value if no matching resource is found
-    // };
-    
- 
+  
 
     updateEventStart = (schedulerData, event, newStart) => {
         if(confirm(`Do you want to adjust the start of the event? {eventId: ${event.id}, eventTitle: ${event.title}, newStart: ${newStart}}`)) {
@@ -292,38 +465,60 @@ newEvent = async (schedulerData, slotId, slotName, start, end, type, item, durat
         })
     }
 
+//Update the task color when it moves according to the delay time period
     moveEvent = (schedulerData, event, slotId, slotName, start, end) => {
-        // if(confirm(`Do you want to move the event? {eventId: ${event.id}, eventTitle: ${event.title}, newSlotId: ${slotId}, newSlotName: ${slotName}, newStart: ${start}, newEnd: ${end}`)) {
-        console.log("Update")
-        
-        let smv = event.smv, pcs = event.pcs, gsmv = 0;
-        
-        schedulerData.resources.forEach(findgsmv => {
-            if (findgsmv.id == slotId) {
-                gsmv = findgsmv.noOfresources;
-            }
-        });
-        const Duration = ((pcs*smv)/(gsmv*480));
-        const roundedDate = Math.ceil(Duration);
+        try {
+            console.log("Update");
+    
+            let smv = event.smv, pcs = event.pcs, tmemb = 0;
+    
+            schedulerData.resources.forEach(findtmemb => {
+                if (findtmemb.id == slotId) {
+                    tmemb = findtmemb.teamMembers;
+                }
+            });
+    
+            const Duration = ((pcs * smv) / (tmemb * 480));
+            const roundedDate = Math.ceil(Duration);
+    
+            const startMoment = moment(start);
+    
+            // Calculate the new end date after the move
+            const newEndMoment = startMoment.clone().add(roundedDate, 'days');
+            const newEnd = newEndMoment.format();
+    
+            // Assuming you have a deadline date stored in your schedulerData
+            const deadline = moment(event.deadline); // Replace this with your actual deadline date
+    
+            // Calculate the duration before the deadline
+            const timeBeforeDeadline = moment(deadline).diff(startMoment, 'days');
+            const durationBeforeDeadline = Math.min(timeBeforeDeadline, roundedDate);
+console.log("Updated before delay time: "+durationBeforeDeadline+" days") //consoling the time
+    
+            // Calculate the duration after the deadline
+            const durationAfterDeadline = Math.max(0, roundedDate - (timeBeforeDeadline+1));
+console.log("Updated delay time: "+durationAfterDeadline+" days") //consoling the updated delay time 
+            // Update the color of the event based on whether it exceeds the deadline
+            event.bgColor = durationAfterDeadline === 0 ? 'cornflowerblue' : 'red';
+    
+            event.durationBeforeDeadline = durationBeforeDeadline;
+            event.durationAfterDeadline = durationAfterDeadline;
+            event.totalDuration = roundedDate;
 
-        const startMoment = moment(start);
-        console.log("start moment: ")
-
-        console.log("end: ", startMoment.add(roundedDate, 'days'));
-
-        //     // Format the result back to a string
-        let newend = startMoment.format();
-        // end = newend;
-        console.log("rounded: ", roundedDate);
-        console.log("start: ", start);
-        console.log("end: ", newend);
-        
-        schedulerData.moveEvent(event, slotId, slotName, start, newend);
+            // Move the event with the updated color
+            schedulerData.moveEvent(event, slotId, slotName, start, newEnd);
+    
+            // Update the component state with the new scheduler data
             this.setState({
-                viewModel: schedulerData
-            })
-        
-    }
+                viewModel: schedulerData,
+            });
+        } catch (error) {
+            console.error('Error moving event:', error);
+            alert('Error moving event. Please check console for details.');
+        }
+    };
+    
+    
 
     onScrollRight = (schedulerData, schedulerContent, maxScrollLeft) => {
         if(schedulerData.ViewTypes === ViewTypes.Day) {

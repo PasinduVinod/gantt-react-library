@@ -7,7 +7,7 @@ export default {
     schedulerMaxHeight: 0,
     tableHeaderHeight: 40,
 
-    agendaResourceTableWidth: 160,
+    agendaResourceTableWidth: screen,
     agendaMaxEventWidth: 100,
 
     dayResourceTableWidth: 160,
@@ -60,7 +60,7 @@ export default {
     relativeMove: true,
     defaultExpanded: true,
 
-    resourceName: 'Resource Name',
+    resourceName: 'Team Name',
     taskName: 'Task Name',
     agendaViewHeader: 'Agenda',
     addMorePopoverHeaderFormat: 'MMM D, YYYY dddd',
@@ -74,7 +74,7 @@ export default {
         {viewName: 'Day', viewType: ViewTypes.Day, showAgenda: false, isEventPerspective: false},
         {viewName: 'Week', viewType: ViewTypes.Week, showAgenda: false, isEventPerspective: false},
         {viewName: 'Month', viewType: ViewTypes.Month, showAgenda: false, isEventPerspective: false},
-        {viewName: 'Quarter', viewType: ViewTypes.Quarter, showAgenda: false, isEventPerspective: false},
+        // {viewName: 'Quarter', viewType: ViewTypes.Quarter, showAgenda: false, isEventPerspective: false},
         {viewName: 'Year', viewType: ViewTypes.Year, showAgenda: false, isEventPerspective: false},
     ],
 }

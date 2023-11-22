@@ -6,6 +6,7 @@ import EventItemPopover from './EventItemPopover'
 import {CellUnits, DATETIME_FORMAT} from './index'
 import {DnDTypes} from './DnDTypes'
 const supportTouch = 'ontouchstart' in window;
+import { durationAfterDeadline, durationBeforeDeadline, totalDuration } from '../example/Basic'
 
 class EventItem extends Component {
     constructor(props) {
@@ -501,12 +502,54 @@ class EventItem extends Component {
         if (this.endResizable(this.props))
             endResizeDiv = <div className="event-resizer event-end-resizer" ref={(ref) => this.endResizer = ref}></div>;
 
+// Render the task bar/stripe 
+        // let eventItemTemplate = (
+        //     <div className={roundCls + ' event-item'} key={eventItem.id}
+        //          style={{height: config.eventItemHeight, backgroundColor: bgColor}}>
+        //         <span style={{marginLeft: '10px', lineHeight: `${config.eventItemHeight}px` }}>{eventTitle}</span>
+        //     </div>
+        // );
+
+        const durationBeforeDeadline1 = eventItem.durationBeforeDeadline;
+        const durationBeforeDeadline = durationBeforeDeadline1+1;
+        const durationAfterDeadline = eventItem.durationAfterDeadline;
+        const totalDuration = eventItem.totalDuration;
+
         let eventItemTemplate = (
             <div className={roundCls + ' event-item'} key={eventItem.id}
-                 style={{height: config.eventItemHeight, backgroundColor: bgColor}}>
-                <span style={{marginLeft: '10px', lineHeight: `${config.eventItemHeight}px` }}>{eventTitle}</span>
+                 style={{ height: config.eventItemHeight, backgroundColor: bgColor }}>
+                       <span style={{ marginLeft: '10px' }}>{eventTitle}</span>
+
+                <div className="left-bar" id='1'
+                     style={{
+                        //  width: `${(durationBeforeDeadline / totalDuration) * 100}%`,
+                         width: `${(durationBeforeDeadline / totalDuration) * 100}%`,
+                         height: '100%',
+                         backgroundColor: 'cornflowerblue',
+                         float: 'left'
+                     }}>
+                </div>
+                <div className="right-bar" id='2'
+                     style={{
+                         width: `${(durationAfterDeadline / totalDuration) * 100}%`,
+                         height: '100%',
+                         backgroundColor: 'red',
+                         float: 'left'
+                     }}>
+                </div>
+                {/* <span style={{ marginLeft: '10px', lineHeight: `${config.eventItemHeight}px` }}>{eventTitle}</span> */}
             </div>
         );
+// Before
+console.log ('After deadline:'+ durationAfterDeadline);
+console.log ('Before deadline:'+ durationBeforeDeadline);
+console.log ('Total duration:'+ totalDuration);
+
+// After
+console.log ('updated duration before deadline:'+durationBeforeDeadline);
+console.log ('updated duration after deadline:'+durationAfterDeadline);
+console.log ('updated Total duration:'+ totalDuration);
+
         if(eventItemTemplateResolver != undefined)
             eventItemTemplate = eventItemTemplateResolver(schedulerData, eventItem, bgColor, isStart, isEnd, 'event-item', config.eventItemHeight, undefined);
 
