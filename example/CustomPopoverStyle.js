@@ -156,7 +156,7 @@ class CustomPopoverStyle extends Component{
             //     <img src="./icons8-ticket-96.png" />
             // </React.Fragment>
 
-////Hover square////
+
             <div style={{width: '300px'}}>
                 <Row type="flex" align="middle">
                     <Col span={2}>
@@ -183,7 +183,7 @@ class CustomPopoverStyle extends Component{
                     </Col>
                 </Row>
             </div>
-////Hover square////
+
         );
     }
 

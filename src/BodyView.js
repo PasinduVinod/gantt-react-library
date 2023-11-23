@@ -31,6 +31,8 @@ class BodyView extends Component {
                     if(!!cellBgColor)
                         style = {...style, backgroundColor: cellBgColor};
                 }
+console.log('cell width:'+cellWidth);
+
                 return (
                     <td key={key} style={style}><div></div></td>
                 )

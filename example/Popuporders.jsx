@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const PopupOrders = () => {
   const [data, setData] = useState([
-    {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, smv:10, "deadline":"2023-11-23"},
+    {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, smv:10, "deadline":"2023-11-22"},
     {"oID":"O002", "cutomerID":"C002", "customerName":"Alpha", "pieces": 8000, smv:10, "deadline":"2023-11-25"},
     {"oID":"O003", "cutomerID":"C001", "customerName":"Benji", "pieces": 100, smv:20, "deadline":"2023-10-3"},
     {"oID":"O004", "cutomerID":"C001", "customerName":"Benji", "pieces": 12000, smv:15, "deadline":"2023-12-25"},
@@ -35,7 +35,7 @@ const PopupOrders = () => {
           backgroundColor: "#d6d6d6",
           color: "#fff",
           padding: "10px",
-          border: "2px solid #e8e8e8",
+          border: "2px solid #dedede",
           borderRadius: "5px",
           zIndex: 999,
         }}
@@ -86,7 +86,7 @@ const PopupOrders = () => {
     // Run closeTooltip after 30 seconds
     setTimeout(() => {
       closeTooltip();
-    }, 15000);
+    }, 10000);
   };
 
   return (

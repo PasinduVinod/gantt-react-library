@@ -511,9 +511,10 @@ class EventItem extends Component {
         // );
 
         const durationBeforeDeadline1 = eventItem.durationBeforeDeadline;
-        const durationBeforeDeadline = durationBeforeDeadline1+1;
+        const durationBeforeDeadline = durationBeforeDeadline1 + 1;
         const durationAfterDeadline = eventItem.durationAfterDeadline;
         const totalDuration = eventItem.totalDuration;
+        const cellwidth = schedulerData.getContentCellWidth();
 
         let eventItemTemplate = (
             <div className={roundCls + ' event-item'} key={eventItem.id}
@@ -523,7 +524,7 @@ class EventItem extends Component {
                 <div className="left-bar" id='1'
                      style={{
                         //  width: `${(durationBeforeDeadline / totalDuration) * 100}%`,
-                         width: `${(durationBeforeDeadline / totalDuration) * 100}%`,
+                         width: `${durationBeforeDeadline * cellwidth}px`,
                          height: '100%',
                          backgroundColor: 'cornflowerblue',
                          float: 'left'
@@ -531,7 +532,7 @@ class EventItem extends Component {
                 </div>
                 <div className="right-bar" id='2'
                      style={{
-                         width: `${(durationAfterDeadline / totalDuration) * 100}%`,
+                         width: `${durationAfterDeadline * cellwidth}px`,
                          height: '100%',
                          backgroundColor: 'red',
                          float: 'left'
@@ -549,6 +550,7 @@ console.log ('Total duration:'+ totalDuration);
 console.log ('updated duration before deadline:'+durationBeforeDeadline);
 console.log ('updated duration after deadline:'+durationAfterDeadline);
 console.log ('updated Total duration:'+ totalDuration);
+console.log ('Cell width:'+ cellwidth);
 
         if(eventItemTemplateResolver != undefined)
             eventItemTemplate = eventItemTemplateResolver(schedulerData, eventItem, bgColor, isStart, isEnd, 'event-item', config.eventItemHeight, undefined);

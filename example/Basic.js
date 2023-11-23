@@ -194,6 +194,7 @@ console.log("Delay time: "+durationAfterDeadline+" days") //consoling the delay 
                 durationAfterDeadline: durationAfterDeadline,
                 durationBeforeDeadline: durationBeforeDeadline,
                 totalDuration: roundedTotalDuration,
+                deadline: deadline,
                 pcs: pcs,
                 smv: smv,
                 // Set the bgColor based on whether the entire task can be completed before the deadline

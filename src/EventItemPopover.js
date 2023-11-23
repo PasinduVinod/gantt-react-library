@@ -25,10 +25,13 @@ class EventItemPopover extends Component {
     }
 
     render(){
-        const {schedulerData, eventItem, title, startTime, endTime, statusColor,subtitleGetter, viewEventClick, viewEventText, viewEvent2Click, viewEvent2Text, eventItemPopoverTemplateResolver} = this.props;
+        const {schedulerData, eventItem, title, startTime, endTime, deadline, customerName, pieces, statusColor,subtitleGetter, viewEventClick, viewEventText, viewEvent2Click, viewEvent2Text, eventItemPopoverTemplateResolver} = this.props;
         const {localeMoment, config} = schedulerData;
         let start = localeMoment(startTime), end = localeMoment(endTime);
-
+        const deadLine = eventItem.deadline;
+        const customer = eventItem.customerName;
+        const Pieces = eventItem.pieces;
+        
         if (eventItemPopoverTemplateResolver != undefined) {
             return eventItemPopoverTemplateResolver(schedulerData, eventItem, title, start, end, statusColor);
         } else {
@@ -87,7 +90,7 @@ class EventItemPopover extends Component {
                     </Row>
                 );
             }
-
+////Hover square////
             let dateFormat = config.eventItemPopoverDateFormat;
             return (
                 <div style={{width: '300px'}}>
@@ -96,7 +99,14 @@ class EventItemPopover extends Component {
                             <div className="status-dot" style={{backgroundColor: statusColor}} />
                         </Col>
                         <Col span={22} className="overflow-text">
-                            <span className="header2-text" title={title}>{title}</span>
+                            <span className="header2-text" title={title}><b>Order Id:</b> {title}</span>
+                        </Col>
+                    </Row>
+                    <Row>
+                    <Col span={22} className="overflow-text">
+                            <span className="header2-text" ><b>Customer:</b> {customer}</span><br/>
+                            <span className="header2-text" ><b>Pieces:</b> {Pieces}</span><br/>
+                            <span className="header2-text" ><b>Deadline:</b> {deadLine}</span>
                         </Col>
                     </Row>
                     {subtitleRow}
@@ -105,12 +115,17 @@ class EventItemPopover extends Component {
                             <div />
                         </Col>
                         <Col span={22}>
-                            <span className="header1-text">{start.format('HH:mm')}</span><span className="help-text" style={{marginLeft: '8px'}}>{start.format(dateFormat)}</span><span className="header2-text"  style={{marginLeft: '8px'}}>-</span><span className="header1-text" style={{marginLeft: '8px'}}>{end.format('HH:mm')}</span><span className="help-text" style={{marginLeft: '8px'}}>{end.format(dateFormat)}</span>
+                        <span className="help-text" style={{fontSize: '16px' }}>Start: </span>
+                        <span className="header1-text" style={{ marginLeft: '8px', fontSize: 'YOUR_FONT_SIZE' }}>{start.format('MMM D')}</span>
+                        <span className="header2-text" style={{ marginLeft: '8px', fontSize: 'YOUR_FONT_SIZE' }}><b>-</b></span>
+                        <span className="help-text" style={{ marginLeft: '8px', fontSize: '16px' }}>End:</span>
+                        <span className="header1-text" style={{ marginLeft: '8px', fontSize: 'YOUR_FONT_SIZE' }}>{end.format('MMM D')}</span>
+
                         </Col>
                     </Row>
-                    {opsRow}
                 </div>
             );
+////Hover square////
         }
     }
 }
