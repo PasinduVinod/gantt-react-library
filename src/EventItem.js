@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, useState, useRef, useEffect} from 'react'
 import {PropTypes} from 'prop-types'
 import Popover from 'antd/lib/popover'
 import 'antd/lib/popover/style/index.css'
@@ -515,32 +515,180 @@ class EventItem extends Component {
         const durationAfterDeadline = eventItem.durationAfterDeadline;
         const totalDuration = eventItem.totalDuration;
         const cellwidth = schedulerData.getContentCellWidth();
+        const pieces = eventItem.pieces;
+        const pcsPerDay = parseFloat((pieces / totalDuration).toFixed(1));
 
-        let eventItemTemplate = (
-            <div className={roundCls + ' event-item'} key={eventItem.id}
-                 style={{ height: config.eventItemHeight, backgroundColor: bgColor }}>
-                       <span style={{ marginLeft: '10px' }}>{eventTitle}</span>
+////////////////CONTEXT MENU/////////////////////
+// const [contextMenuVisible, setContextMenuVisible] = useState(false);
+// const [contextMenuPosition, setContextMenuPosition] = useState({ top: 0, left: 0 });
 
-                <div className="left-bar" id='1'
-                     style={{
-                        //  width: `${(durationBeforeDeadline / totalDuration) * 100}%`,
-                         width: `${durationBeforeDeadline * cellwidth}px`,
-                         height: '100%',
-                         backgroundColor: 'cornflowerblue',
-                         float: 'left'
-                     }}>
-                </div>
-                <div className="right-bar" id='2'
-                     style={{
-                         width: `${durationAfterDeadline * cellwidth}px`,
-                         height: '100%',
-                         backgroundColor: 'red',
-                         float: 'left'
-                     }}>
-                </div>
-                {/* <span style={{ marginLeft: '10px', lineHeight: `${config.eventItemHeight}px` }}>{eventTitle}</span> */}
-            </div>
-        );
+// const contextMenuRef = useRef(null);
+
+// useEffect(() => {
+//   const handleClickOutside = (event) => {
+//     if (contextMenuRef.current && !contextMenuRef.current.contains(event.target)) {
+//       // Click occurred outside the context menu, so close it
+//       closeContextMenu();
+//     }
+//   };
+
+//   // Attach the event listener to the document
+//   document.addEventListener('click', handleClickOutside);
+
+//   // Clean up the event listener on component unmount
+//   return () => {
+//     document.removeEventListener('click', handleClickOutside);
+//   };
+// }, []);
+
+// const handleContextMenu = (e) => {
+//   e.preventDefault();
+
+//   // Get the position of the right-click
+//   const position = { top: e.pageY, left: e.pageX };
+
+//   // Set the context menu position and make it visible
+//   setContextMenuPosition(position);
+//   setContextMenuVisible(true);
+// };
+
+// const closeContextMenu = () => {
+//   // Close the context menu
+//   setContextMenuVisible(false);
+// };
+
+// const handleMenuItemClick = (action) => {
+//   // Handle the menu item click based on the action
+//   console.log(`Clicked on menu item: ${action}`);
+
+//   // Close the context menu
+//   closeContextMenu();
+// };
+
+
+        ////NEW!!!////
+        const handleContextMenu = (e) => {
+            // Implement your logic to display the right-click menu
+            e.preventDefault();
+            // You may use the event coordinates (e.pageX, e.pageY) to position your menu
+            // For simplicity, you can console.log to verify that the right-click is working
+            console.log('Right-clicked!');
+            // Add your code to display the actual context menu here
+        };
+
+        
+        // let eventItemTemplate = (
+        //     <div className={roundCls + ' event-item'} key={eventItem.id}
+        //          style={{ height: config.eventItemHeight, backgroundColor: bgColor }}>
+        //                <span style={{ marginLeft: '10px' }}>{eventTitle}</span>
+
+        //         <div className="left-bar" id='1'
+        //              style={{
+        //                 //  width: `${(durationBeforeDeadline / totalDuration) * 100}%`,
+        //                  width: `${durationBeforeDeadline * cellwidth}px`,
+        //                  height: '100%',
+        //                  backgroundColor: 'cornflowerblue',
+        //                  float: 'left'
+        //              }}>
+        //         </div>
+        //         <div className="right-bar" id='2'
+        //              style={{
+        //                  width: `${durationAfterDeadline * cellwidth}px`,
+        //                  height: '100%',
+        //                  backgroundColor: 'red',
+        //                  float: 'left'
+        //              }}>
+        //         </div>
+        //         {/* <span style={{ marginLeft: '10px', lineHeight: `${config.eventItemHeight}px` }}>{eventTitle}</span> */}
+        //     </div>
+        // );
+
+
+////////////////////////////////////////////////////////
+
+
+let eventItemTemplate = (
+    // Event item container
+    <div className={roundCls + ' event-item'} key={eventItem.id}
+         style={{ height: config.eventItemHeight, backgroundColor: bgColor, position: 'relative' }}>
+     
+        {/* Left bar representing duration before deadline */}
+        <div className="left-bar" id='1'
+             style={{
+                 width: `${durationBeforeDeadline * cellwidth}px`,
+                 height: '100%',
+                 backgroundColor: 'cornflowerblue',
+                 float: 'left',
+                 position: 'relative'
+             }}>
+           
+             {/* Small div inside left-bar */}
+             <div style={{ width: `${cellwidth}px`, height: `${config.eventItemHeight}px`, position: 'absolute', top: 0, left: 0 }}>
+                {/* Display the value of pcsPerDay in center */}
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#fff' }}></span>
+             </div>
+        </div>
+
+        {/* Right bar representing duration after deadline */}
+        <div className="right-bar" id='2'
+             style={{
+                 width: `${durationAfterDeadline * cellwidth}px`,
+                 height: '100%',
+                 backgroundColor: 'red',
+                 float: 'left',
+                 position: 'relative'
+             }}>
+         
+             {/* Small div inside right-bar */}
+             <div style={{ width: `${cellwidth}px`, height: `${config.eventItemHeight}px`, position: 'absolute', top: 0, left: 0 }}>
+                {/* Display the value of pcsPerDay in center */}
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#fff' }}></span>
+             </div>
+        </div>
+
+        {/* Container for vertical lines with context menu */}
+        <div onContextMenu={(e) => handleContextMenu(e)} className="vertical-lines" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+            {/* Iterate for each cell and display vertical lines */}
+            {[...Array(totalDuration)].map((_, index) => (
+                <span key={index} style={{ width: `${cellwidth}px`, height: `${config.eventItemHeight}px`, display: 'inline-block', position: 'relative', zIndex: 1 }}>
+                    {/* Display the value of pcsPerDay next to each vertical line */}
+                    <span style={{ position: 'absolute', top: '0%', transform: 'translateY(-50%)', left: '50%', transform: 'translateX(-50%)', color: '#fff' }}>{pcsPerDay} pcs</span>
+                    {/* Display the white vertical line at the right end of each cell */}
+                    <span style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '1px', backgroundColor: '#fff' }}></span>
+                </span>
+            ))}
+        </div>
+   
+    </div>
+);
+
+  {/* Context Menu */}
+//   {contextMenuVisible && (
+//     <div
+//         ref={contextMenuRef}
+//         className="context-menu"
+//         style={{
+//         position: 'absolute',
+//         top: contextMenuPosition.top,
+//         left: contextMenuPosition.left,
+//         zIndex: 2,
+//         backgroundColor: '#fff',
+//         border: '1px solid #ccc',
+//         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+//         borderRadius: '4px',
+//         }}>
+//         <div style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #ccc', }} onClick={() => handleMenuItemClick('MenuItem1')} > MenuItem1 </div>
+//         <div style={{ padding: '8px', cursor: 'pointer', }} onClick={() => handleMenuItemClick('MenuItem2')} > MenuItem2 </div>
+//         {/* Add more menu items as needed */}
+//     </div>
+// )}
+{/* Context Menu */}
+
+console.log("PIECES:"+pieces);
+console.log("PIECES per Day:"+pcsPerDay);
+////////////////////////////////////////////////////////
+
+
 // Before
 console.log ('After deadline:'+ durationAfterDeadline);
 console.log ('Before deadline:'+ durationBeforeDeadline);
