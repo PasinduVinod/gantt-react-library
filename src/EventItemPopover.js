@@ -27,7 +27,7 @@ class EventItemPopover extends Component {
     render(){
         const {schedulerData, eventItem, title, startTime, endTime, deadline, customerName, pieces, statusColor,subtitleGetter, viewEventClick, viewEventText, viewEvent2Click, viewEvent2Text, eventItemPopoverTemplateResolver} = this.props;
         const {localeMoment, config} = schedulerData;
-        let start = localeMoment(startTime), end = localeMoment(endTime);
+        let start = localeMoment(startTime), end = localeMoment(endTime).subtract(1, 'days');
         const deadLine = eventItem.deadline;
         const customer = eventItem.customerName;
         const Pieces = eventItem.pieces;

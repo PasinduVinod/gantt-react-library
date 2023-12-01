@@ -4,10 +4,10 @@ const PopupOrders = () => {
   const [data, setData] = useState([
     {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, smv:10, "deadline":"2023-11-29"},
     {"oID":"O002", "cutomerID":"C002", "customerName":"Alpha", "pieces": 8000, smv:10, "deadline":"2023-12-1"},
-    {"oID":"O003", "cutomerID":"C001", "customerName":"Benji", "pieces": 100, smv:20, "deadline":"2023-10-3"},
+    {"oID":"O003", "cutomerID":"C001", "customerName":"Benji", "pieces": 100, smv:4, "deadline":"2023-10-3"},
     {"oID":"O004", "cutomerID":"C001", "customerName":"Benji", "pieces": 12000, smv:15, "deadline":"2023-12-25"},
     {"oID":"O005", "cutomerID":"C002", "customerName":"Alpha", "pieces": 18000, smv:10, "deadline":"2023-11-21"}
-  ]);3
+  ]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [tooltipData, setTooltipData] = useState(null);

@@ -7,6 +7,7 @@ import {CellUnits, DATETIME_FORMAT} from './index'
 import {DnDTypes} from './DnDTypes'
 const supportTouch = 'ontouchstart' in window;
 import { durationAfterDeadline, durationBeforeDeadline, totalDuration } from '../example/Basic'
+import Title from 'antd/lib/skeleton/Title'
 
 class EventItem extends Component {
     constructor(props) {
@@ -566,15 +567,176 @@ class EventItem extends Component {
 // };
 
 
-        ////NEW!!!////
+        ////RIGHT CLICK CONTEXT MENU////
+        let contextMenu = null; // Declare contextMenu outside the function to track the currently open menu
         const handleContextMenu = (e) => {
-            // Implement your logic to display the right-click menu
             e.preventDefault();
-            // You may use the event coordinates (e.pageX, e.pageY) to position your menu
-            // For simplicity, you can console.log to verify that the right-click is working
-            console.log('Right-clicked!');
-            // Add your code to display the actual context menu here
+        
+            // Close the previous context menu if it exists
+            if (contextMenu) {
+                document.body.removeChild(contextMenu);
+            }
+        
+            // Create a new context menu container
+            contextMenu = document.createElement('div');
+            contextMenu.style.position = 'absolute';
+            contextMenu.style.top = `${e.clientY}px`;
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.style.backgroundColor = '#fff';
+            contextMenu.style.border = '1px solid #ddd';
+            contextMenu.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+            contextMenu.style.padding = '5px';
+            contextMenu.style.zIndex = '1000';
+            contextMenu.style.borderRadius = '9px';
+        
+            // Create clickable menu items
+            const createMenuItem = (text, onClick, addBorder, pcsPerDayValue) => {
+                const menuItem = document.createElement('div');
+                menuItem.textContent = text;
+                menuItem.style.cursor = 'pointer';
+                menuItem.style.padding = '8px';
+                menuItem.style.marginBottom = '4px';
+                menuItem.style.borderRadius = '4px';
+                menuItem.style.transition = 'background-color 0.3s';
+        
+                if (addBorder) {
+                    menuItem.style.borderBottom = '1px solid #ddd';
+                }
+        
+                menuItem.addEventListener('mouseover', () => {
+                    menuItem.style.backgroundColor = '#f0f0f0';
+                });
+        
+                menuItem.addEventListener('mouseout', () => {
+                    menuItem.style.backgroundColor = 'transparent';
+                });
+        
+                menuItem.addEventListener('click', () => {
+                    // Handle the click for the menu item
+                    onClick(pcsPerDayValue);
+                    // Close the context menu
+                    document.body.removeChild(contextMenu);
+                    contextMenu = null;
+                });
+        
+                return menuItem;
+            };
+        
+            // Create menu items
+            // const menuItem1 = createMenuItem('Edit', openEditPopup, true, pcsPerDay);
+            const menuItem1 = createMenuItem('Edit', () => openEditPopup(pcsPerDay, menuItem1), true, pcsPerDay);
+            const menuItem2 = createMenuItem('Option 2', () => console.log('Option 2 clicked!'), true);
+            const menuItem3 = createMenuItem('Option 3', () => console.log('Option 3 clicked!'), true);
+            const menuItem4 = createMenuItem('Option 4', () => console.log('Option 4 clicked!'), false);
+        
+            // Append menu items to the context menu
+            contextMenu.appendChild(menuItem1);
+            contextMenu.appendChild(menuItem2);
+            contextMenu.appendChild(menuItem3);
+            contextMenu.appendChild(menuItem4);
+        
+            // Append the context menu to the body
+            document.body.appendChild(contextMenu);
+        
+            // Close the context menu when clicking outside of it
+            const closeContextMenu = (event) => {
+                if (contextMenu && !contextMenu.contains(event.target)) {
+                    document.body.removeChild(contextMenu);
+                    contextMenu = null;
+                    document.removeEventListener('click', closeContextMenu);
+                }
+            };
+        
+            // Listen for clicks outside the context menu
+            document.addEventListener('click', closeContextMenu);
         };
+        
+
+       //// Popup for edit the span ////
+        const openEditPopup = (pcsPerDayValue, relatedSpan) => {
+            // Create a popup container
+            const popupContainer = document.createElement('div');
+            popupContainer.style.position = 'fixed';
+            popupContainer.style.top = '50%';
+            popupContainer.style.left = '50%';
+            popupContainer.style.transform = 'translate(-50%, -50%)';
+            popupContainer.style.backgroundColor = '#fff';
+            popupContainer.style.border = '1px solid #ddd';
+            popupContainer.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+            popupContainer.style.padding = '20px';
+            popupContainer.style.zIndex = '1001';
+            popupContainer.style.borderRadius = '9px';
+            popupContainer.style.opacity = '0'; // Initial opacity
+            popupContainer.style.transition = 'opacity 0.3s ease-in'; // Fade-in animation
+
+            // Text at center-top of the popup
+            const topText = document.createElement('div');
+            topText.textContent = 'Edit Pcs';
+            topText.style.fontSize = '18px';
+            topText.style.fontWeight = 'bold';
+            topText.style.textAlign = 'center';
+            topText.style.marginBottom = '10px';
+
+            // Input field for editing pcsPerDayValue
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.value = pcsPerDayValue;
+            valueInput.style.marginBottom = '10px';
+            valueInput.style.width = '100%';
+            valueInput.style.padding = '8px';
+            valueInput.style.border = '1px solid #ddd';
+            valueInput.style.borderRadius = '4px';
+            valueInput.style.transition = 'border-color 0.3s';
+
+            // Event listener to allow only numeric input
+            valueInput.addEventListener('input', () => {
+                valueInput.value = valueInput.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+            });
+
+            // Save button
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Save';
+            saveButton.style.marginRight = '10px';
+            saveButton.addEventListener('click', () => {
+                // Handle save logic here with the updated value
+                const updatedValue = valueInput.value;
+                console.log('Save clicked! Updated Value:', updatedValue);
+                
+                // Update pcsPerDay value
+                pcsPerDayValue = updatedValue;
+                // Display the updated value in the related span
+                relatedSpan.textContent = `${updatedValue} pcs`;
+
+                // Close the popup
+                document.body.removeChild(popupContainer);
+            });
+
+            // Cancel button
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Cancel';
+            cancelButton.addEventListener('click', () => {
+                // Handle cancel logic here
+                console.log('Cancel clicked!');
+                // Close the popup
+                document.body.removeChild(popupContainer);
+            });
+
+            // Append elements to the popup container
+            popupContainer.appendChild(topText);
+            popupContainer.appendChild(valueInput);
+            popupContainer.appendChild(saveButton);
+            popupContainer.appendChild(cancelButton);
+
+            // Append the popup container to the body
+            document.body.appendChild(popupContainer);
+
+            // Triggering reflow to apply initial opacity and start the animation
+            popupContainer.offsetHeight; // eslint-disable-line no-unused-expressions
+            popupContainer.style.opacity = '1';
+        };
+
+
+        
 
         
         // let eventItemTemplate = (
@@ -611,7 +773,6 @@ let eventItemTemplate = (
     // Event item container
     <div className={roundCls + ' event-item'} key={eventItem.id}
          style={{ height: config.eventItemHeight, backgroundColor: bgColor, position: 'relative' }}>
-     
         {/* Left bar representing duration before deadline */}
         <div className="left-bar" id='1'
              style={{
@@ -662,27 +823,6 @@ let eventItemTemplate = (
     </div>
 );
 
-  {/* Context Menu */}
-//   {contextMenuVisible && (
-//     <div
-//         ref={contextMenuRef}
-//         className="context-menu"
-//         style={{
-//         position: 'absolute',
-//         top: contextMenuPosition.top,
-//         left: contextMenuPosition.left,
-//         zIndex: 2,
-//         backgroundColor: '#fff',
-//         border: '1px solid #ccc',
-//         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-//         borderRadius: '4px',
-//         }}>
-//         <div style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #ccc', }} onClick={() => handleMenuItemClick('MenuItem1')} > MenuItem1 </div>
-//         <div style={{ padding: '8px', cursor: 'pointer', }} onClick={() => handleMenuItemClick('MenuItem2')} > MenuItem2 </div>
-//         {/* Add more menu items as needed */}
-//     </div>
-// )}
-{/* Context Menu */}
 
 console.log("PIECES:"+pieces);
 console.log("PIECES per Day:"+pcsPerDay);

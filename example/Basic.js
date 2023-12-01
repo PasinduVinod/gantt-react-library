@@ -21,7 +21,7 @@ class Basic extends Component {
       let currentDate = new Date(); // Get current date
       let formattedCurrentDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
       let schedulerData = new SchedulerData(formattedCurrentDate, ViewTypes.Week, false, false, {
-        displayWeekend: false,
+        displayWeekend: true,
         checkConflict: false,
         resizable: false,
       });
