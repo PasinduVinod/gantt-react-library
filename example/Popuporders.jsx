@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const PopupOrders = () => {
   const [data, setData] = useState([
-    {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, smv:10, "deadline":"2023-11-29"},
+    {"oID":"O001", "cutomerID":"C001", "customerName":"Benji", "pieces": 9000, smv:10, "deadline":"2023-12-05"},
     {"oID":"O002", "cutomerID":"C002", "customerName":"Alpha", "pieces": 8000, smv:10, "deadline":"2023-12-1"},
     {"oID":"O003", "cutomerID":"C001", "customerName":"Benji", "pieces": 100, smv:4, "deadline":"2023-10-3"},
     {"oID":"O004", "cutomerID":"C001", "customerName":"Benji", "pieces": 12000, smv:15, "deadline":"2023-12-25"},
